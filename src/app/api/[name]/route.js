@@ -12,7 +12,6 @@ export async function GET(req, context) {
     const url = `https://beebom.com/${name}-codes/`;
     const res = await axios.get(url);
     const $ = cheerio.load(res.data);
-
     const data = { Active: [], Expire: [] };
 
     $('.wp-block-list li strong').each((_, s) => {
@@ -25,8 +24,16 @@ export async function GET(req, context) {
       if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Expire.push(text);
     });
 
-    return NextResponse.json({ Name: name, ...data });
+    const metadata = { Discord: "https://discord.gg/KA7Y9P4Jss", Version: 1, Time: new Date().toISOString() };
+    const wrapped = {
+      Name: name,
+      Total: { Active: data.Active.length, Expire: data.Expire.length },
+      ...data,
+      metadata
+    };
+
+    return NextResponse.json({ data: wrapped });
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch codes', details: err.message }, { status: 500 });
   }
-}
+      }
