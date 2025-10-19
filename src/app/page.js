@@ -7,7 +7,7 @@ function Home() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch("https://corsproxy.io/https://nerium.vercel.app/api/anime-raid")
+    fetch("https://corsproxy.io/https://nerium.vercel.app/api/anime-eternal")
       .then(res => res.json())
       .then(data => setResponse(data))
       .catch(() => setResponse({ error: "Failed to fetch API" }));
