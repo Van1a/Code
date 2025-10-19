@@ -14,7 +14,7 @@ function Home() {
   }, []);
 
   const copyApi = () => {
-    navigator.clipboard.writeText("https://nerium.vercel.app/api/plants-vs-brainrots");
+    navigator.clipboard.writeText("https://nerium.vercel.app/api/anime-eternal");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
