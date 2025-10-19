@@ -35,7 +35,7 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-gray-950 text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-gray-950 text-white mb-8">
       <img
         className="h-24 w-24 rounded-2xl mb-5 shadow-[0_0_25px_rgba(34,197,94,0.6)]"
         src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNjhmNGU0MDU1MTcwODE5MTg5YzJkMDgyYjkyZDNhZGI6ZmlsZV8wMDAwMDAwMDE0NTg2MjJmYWI1ZmMyZGJkYzgwMTM1NCIsInRzIjoiMjAzODAiLCJwIjoicHlpIiwiY2lkIjoiMSIsInNpZyI6ImFjOGYyNTZkOGFkMDkxZWMyZDEwMGFhYjYzZDRkYzQxOWNkNWZkOTBiNTliNmM2ODgxMjgxMTViODZmNDkxYzIiLCJ2IjoiMCIsImdpem1vX2lkIjpudWxsLCJjcCI6bnVsbCwibWEiOm51bGx9"
