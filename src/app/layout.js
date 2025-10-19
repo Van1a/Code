@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Nerium API",
-  description: "Very reliable when it comes to Game Code — supported more than 300+ Games!",
+  description: "Very reliable when it comes to Game Code supported more than 150+ Games!",
 };
 
 export default function RootLayout({ children }) {
