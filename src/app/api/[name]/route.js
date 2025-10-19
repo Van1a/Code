@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-const blacklist = ["new"];
+const blacklist = ["new", "Shop -> Codes","Claim button"];
 
 export async function GET(req, context) {
   try {
