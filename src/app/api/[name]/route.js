@@ -14,7 +14,7 @@ export async function GET(req, context) {
     const $ = cheerio.load(res.data);
     const data = { Active: [], Expire: [] };
 
-    $("ul.wp-block-list li").each((_, li) => {
+    $("ul.wp-block-list").first().find("li").each((_, li) => {
       $(li).find("strong").each((_, strong) => {
         const text = $(strong).text().trim();
         if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Active.push(text);
@@ -38,4 +38,4 @@ export async function GET(req, context) {
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch codes', details: err.message }, { status: 500 });
   }
-}
+    }
