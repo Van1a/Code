@@ -15,13 +15,18 @@ export async function GET(req, context) {
     const data = { Active: [], Expire: [] };
 
     $("ul.wp-block-list").first().find("li").each((_, li) => {
-      $(li).find("mark").remove();
+      const markTag = $(li).find("mark");
+      const isNew = markTag.length > 0;
+      markTag.remove();
+
       const code = $(li).find("strong").text().trim();
       $(li).find("strong").remove();
+
       let reward = $(li).text().trim();
       reward = reward.replace(/\(\s*\)/g, '').replace(/^:\s*/, '').trim();
+
       if (code && !blacklist.some(w => code.toLowerCase().includes(w.toLowerCase())))
-        data.Active.push({ Code: code, Reward: reward });
+        data.Active.push({ Code: code, Reward: reward, isNew });
     });
 
     $(".wp-block-list.is-style-inline-divider-list li").each((_, li) => {
