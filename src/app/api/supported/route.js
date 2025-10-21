@@ -1,4 +1,4 @@
-const list = `{
+const list = {
   "Supported": [
     "parkour-champions",
     "raise-animals",
@@ -666,7 +666,7 @@ const list = `{
     "claim-roblox-prime-gaming-reward",
     "how-redeem-roblox-toy"
   ]
-}`;
+};
 
 export async function GET() { 
     return Response.json(list);
