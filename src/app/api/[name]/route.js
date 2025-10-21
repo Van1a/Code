@@ -19,7 +19,10 @@ export async function GET(req, context) {
       const code = $(li).find("strong").text().trim();
       $(li).find("strong").remove();
       let reward = $(li).text().trim();
-      reward = reward.replace(/^\s+/, '').replace(/\(\s*\)/g, '').trim();
+      // Remove empty parentheses
+      reward = reward.replace(/\(\s*\)/g, '');
+      // Remove leading colon and spaces
+      reward = reward.replace(/^:\s*/, '').trim();
       if (code && !blacklist.some(w => code.toLowerCase().includes(w.toLowerCase())))
         data.Active[code] = reward;
     });
