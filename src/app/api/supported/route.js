@@ -669,5 +669,5 @@ const list = `{
 }`;
 
 export async function GET() { 
-    return Response.json({list});
+    return Response.json(list);
 }
