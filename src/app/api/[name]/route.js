@@ -12,13 +12,13 @@ export async function GET(req, context) {
     const url = `https://beebom.com/${name}-codes/`;
     const res = await axios.get(url);
     const $ = cheerio.load(res.data);
-    const data = { Active: [], Expire: [] };
+    const data = { Active: {}, Expire: [] };
 
     $("ul.wp-block-list").first().find("li").each((_, li) => {
-      $(li).find("strong").each((_, strong) => {
-        const text = $(strong).text().trim();
-        if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Active.push(text);
-      });
+      const code = $(li).find("strong").text().trim();
+      $(li).find("strong").remove();
+      const reward = $(li).text().trim();
+      if (code && !blacklist.some(w => code.toLowerCase().includes(w))) data.Active[code] = reward;
     });
 
     $(".wp-block-list.is-style-inline-divider-list li").each((_, li) => {
@@ -26,16 +26,24 @@ export async function GET(req, context) {
       if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Expire.push(text);
     });
 
-    const metadata = { Discord: "https://discord.gg/KA7Y9P4Jss", Version: 1.1, Time: new Date().toISOString() };
+    const metadata = {
+      Discord: "https://discord.gg/KA7Y9P4Jss",
+      Version: 1.1,
+      Time: new Date().toISOString()
+    };
+
     const wrapped = {
       Name: name,
-      Total: { Active: data.Active.length, Expire: data.Expire.length },
+      Total: { Active: Object.keys(data.Active).length, Expire: data.Expire.length },
       ...data,
       metadata
     };
 
     return NextResponse.json({ data: wrapped });
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch codes', details: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch codes', details: err.message },
+      { status: 500 }
+    );
   }
-    }
+}
