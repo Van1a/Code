@@ -18,7 +18,8 @@ export async function GET(req, context) {
       $(li).find("mark").remove();
       const code = $(li).find("strong").text().trim();
       $(li).find("strong").remove();
-      const reward = $(li).text().trim();
+      let reward = $(li).text().trim();
+      reward = reward.replace(/^\s+/, '').replace(/\(\s*\)/g, '').trim();
       if (code && !blacklist.some(w => code.toLowerCase().includes(w.toLowerCase())))
         data.Active[code] = reward;
     });
