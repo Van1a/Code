@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-const blacklist = ["new", "Shop -> Codes", "Claim button"];
+const blacklist = ["Shop -> Codes", "Claim button"];
 
 export async function GET(req, context) {
   try {
@@ -18,12 +18,14 @@ export async function GET(req, context) {
       const code = $(li).find("strong").text().trim();
       $(li).find("strong").remove();
       const reward = $(li).text().trim();
-      if (code && !blacklist.some(w => code.toLowerCase().includes(w))) data.Active[code] = reward;
+      if (code && !blacklist.some(w => code.toLowerCase().includes(w.toLowerCase())))
+        data.Active[code] = reward;
     });
 
     $(".wp-block-list.is-style-inline-divider-list li").each((_, li) => {
       const text = $(li).text().trim();
-      if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Expire.push(text);
+      if (text && !blacklist.some(w => text.toLowerCase().includes(w.toLowerCase())))
+        data.Expire.push(text);
     });
 
     const metadata = {
@@ -46,4 +48,4 @@ export async function GET(req, context) {
       { status: 500 }
     );
   }
-}
+          }
