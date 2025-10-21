@@ -14,7 +14,7 @@ export async function GET(req, context) {
     const $ = cheerio.load(res.data);
     const data = { Active: [], Expire: [] };
 
-    $('.wp-block-list li strong').each((_, s) => {
+    $('.wp-block-list strong').each((_, s) => {
       const text = $(s).text().trim();
       if (text && !blacklist.some(w => text.toLowerCase().includes(w))) data.Active.push(text);
     });
