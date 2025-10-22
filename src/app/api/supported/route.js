@@ -670,13 +670,13 @@ const list = {
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url)
-  const find = searchParams.get("find")
-  
+  const find = searchParams.get("find")  
 
   if (!find) return Response.json(list)
 
-  const query = find.toLowerCase().replace(/\s+/g, "-")
-  const isFound = list.Supported.includes(query)
+  const text = find.toLowerCase().replace(/\s+/g, "-")
+  const match = list.Supported.find(name => text.includes(name))
+  const isFound = Boolean(match)
 
-  return Response.json({ query, isFound })
+  return Response.json({ query: match || text, isFound })
 }
