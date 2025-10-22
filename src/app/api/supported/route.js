@@ -668,6 +668,14 @@ const list = {
   ]
 };
 
-export async function GET() { 
-    return Response.json(list);
+export async function GET(req) {
+  const { searchParams } = new URL(req.url)
+  const sort = searchParams.get("sort")
+  
+  if (!sort) return Response.json({ query: null, isFound: false })
+
+  const query = sort.toLowerCase().replace(/\s+/g, "-")
+  const isFound = list.Supported.includes(query)
+
+  return Response.json({ query, isFound })
 }
