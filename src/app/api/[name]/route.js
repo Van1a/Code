@@ -3,16 +3,16 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import LRU from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 const blacklist = ["Shop -> Codes", "Claim button"];
 const pasteId = "SD3cieyJ";
 const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh";
 
 // --- LRU rate limiter ---
-const tokenCache = new LRU({
+const tokenCache = new LRUCache({
   max: 5000,
-  ttl: 10 * 60 * 1000 // 10 minutes block
+  ttl: 10 * 60 * 1000 // block for 10 minutes
 });
 const RATE_LIMIT = 50; // requests per minute
 
