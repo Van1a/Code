@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const client = new MongoClient("mongodb+srv://Vercel-Admin-nerium-data:TXGXPqKKairzq63l@nerium-data.nlg9ana.mongodb.net/?retryWrites=true&w=majority");
-
-const RATE_LIMIT = 50; // max requests per minute
+const RATE_LIMIT = 50;
 const BLOCK_TIME = 10 * 60 * 1000; // 10 minutes
 
+let client;
+let db;
+
+async function getDb() {
+  if (!client) {
+    client = new MongoClient(
+      "mongodb+srv://Vercel-Admin-nerium-data:TXGXPqKKairzq63l@nerium-data.nlg9ana.mongodb.net/?retryWrites=true&w=majority"
+    );
+    await client.connect();
+    db = client.db('ratelimit');
+  }
+  return db;
+}
+
 async function checkRateLimit(ip) {
-  const db = client.db('ratelimit');
   const col = db.collection('requests');
   const now = Date.now();
 
@@ -33,10 +44,20 @@ async function checkRateLimit(ip) {
 
 export async function middleware(req) {
   const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
-  await client.connect();
 
-  const allowed = await checkRateLimit(ip);
-  if (!allowed) return NextResponse.json({ error: 'Rate limit exceeded. Try again in 10 minutes.' }, { status: 429 });
+  try {
+    await getDb();
+    const allowed = await checkRateLimit(ip);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Try again in 10 minutes.' },
+        { status: 429 }
+      );
+    }
+  } catch (err) {
+    // If MongoDB fails, allow request but log error
+    console.error('Rate limiter error:', err);
+  }
 
   return NextResponse.next();
 }
