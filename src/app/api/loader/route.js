@@ -25,7 +25,7 @@ function get(url)
     return game.HttpService:JSONDecode(response.Body)
 end
 
-local function notify(title, desc, time)
+function notify(title, desc, time)
     Fluent:Notify({ Title = title, Content = desc, Duration = time })
 end
 
@@ -69,7 +69,7 @@ function markRemoved(fileData, code)
     writefile("Nerium/data.txt", game.HttpService:JSONEncode(file))
 end
 
-local function unmarkRemoved(fileData, code)
+function unmarkRemoved(fileData, code)
     for i = #fileData.usedCode, 1, -1 do
         if fileData.usedCode[i] == code then
             table.remove(fileData.usedCode, i)
