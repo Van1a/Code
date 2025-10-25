@@ -39,8 +39,15 @@ function Home() {
 
       <div className="mt-10 w-80 bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] max-h-64 overflow-auto">
         <h2 className="text-green-400 text-lg font-semibold mb-2">API Response</h2>
+        
+        {response?.data?.metadata?.apiServe && (
+          <p className="text-yellow-400 mb-2 text-sm">
+            API fetched <strong>{response.data.metadata.apiServe}</strong> times
+          </p>
+        )}
+        
         <pre className="text-sm whitespace-pre-wrap break-words font-mono">
-{JSON.stringify(response, null, 2)}
+          {JSON.stringify(response, null, 2)}
         </pre>
       </div>
 
