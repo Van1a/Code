@@ -7,7 +7,8 @@ import LRU from 'lru-cache';
 
 const blacklist = ["Shop -> Codes", "Claim button"];
 const pasteId = "SD3cieyJ";
-const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh"];
+const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh";
+  ;
 
 // --- LRU rate limiter ---
 const tokenCache = new LRU({
