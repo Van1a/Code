@@ -5,9 +5,21 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 const blacklist = ["Shop -> Codes", "Claim button"];
+const pasteId = "SD3cieyJ";
+const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh";
 
 export async function GET(req, context) {
+  let apiServe = "0";
+
   try {
+    // --- Pastefy increment in one line ---
+    await axios.get(`https://pastefy.app/api/v2/paste/${pasteId}`)
+      .then(r => (apiServe = r.data.content || "0") && axios.put(
+        `https://pastefy.app/api/v2/paste/${pasteId}`,
+        { content: (+r.data.content + 1).toString() },
+        { headers: { Authorization: `Bearer ${pasteToken}` } }
+      )).catch(() => {});
+
     const name = context.params.name;
     const url = `https://beebom.com/${name}-codes/`;
     const res = await axios.get(url);
@@ -22,8 +34,7 @@ export async function GET(req, context) {
       const code = $(li).find("strong").text().trim();
       $(li).find("strong").remove();
 
-      let reward = $(li).text().trim();
-      reward = reward.replace(/\(\s*\)/g, '').replace(/^:\s*/, '').trim();
+      let reward = $(li).text().trim().replace(/\(\s*\)/g, '').replace(/^:\s*/, '').trim();
 
       if (code && !blacklist.some(w => code.toLowerCase().includes(w.toLowerCase())))
         data.Active.push({ Code: code, Reward: reward, isNew });
@@ -39,7 +50,8 @@ export async function GET(req, context) {
     const metadata = {
       Discord: "https://discord.gg/KA7Y9P4Jss",
       Version: 1.1,
-      Time: new Date().toISOString()
+      Time: new Date().toISOString(),
+      apiServe
     };
 
     const wrapped = {
