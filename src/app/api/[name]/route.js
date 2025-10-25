@@ -8,12 +8,11 @@ import LRU from 'lru-cache';
 const blacklist = ["Shop -> Codes", "Claim button"];
 const pasteId = "SD3cieyJ";
 const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh";
-  ;
 
 // --- LRU rate limiter ---
 const tokenCache = new LRU({
   max: 5000,
-  ttl: 10 * 60 * 1000 // block for 10 minutes
+  ttl: 10 * 60 * 1000 // 10 minutes block
 });
 const RATE_LIMIT = 50; // requests per minute
 
@@ -44,11 +43,14 @@ export async function GET(req, context) {
 
   try {
     await axios.get(`https://pastefy.app/api/v2/paste/${pasteId}`)
-      .then(r => (apiServe = r.data.content || "0") && axios.put(
-        `https://pastefy.app/api/v2/paste/${pasteId}`,
-        { content: (+r.data.content + 1).toString() },
-        { headers: { Authorization: `Bearer ${pasteToken}` } }
-      )).catch(() => {});
+      .then(r => {
+        apiServe = r.data.content || "0";
+        return axios.put(
+          `https://pastefy.app/api/v2/paste/${pasteId}`,
+          { content: (+r.data.content + 1).toString() },
+          { headers: { Authorization: `Bearer ${pasteToken}` } }
+        );
+      }).catch(() => {});
 
     const name = context.params.name;
     const url = `https://beebom.com/${name}-codes/`;
