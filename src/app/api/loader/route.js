@@ -1,4 +1,60 @@
-export async function GET() {
+import { MongoClient } from 'mongodb';
+
+const MONGODB_URI = process.env.nerium_MONGODB_URI || "mongodb+srv://Vercel-Admin-nerium-data:TXGXPqKKairzq63l@nerium-data.nlg9ana.mongodb.net/?retryWrites=true&w=majority";
+const RATE_LIMIT = 50;         
+const BLOCK_TIME = 10 * 60e3;  
+
+let client;
+let db;
+
+async function getDb() {
+  if (!client) {
+    client = new MongoClient(MONGODB_URI);
+    await client.connect();
+    db = client.db('ratelimit');
+  }
+  return db;
+}
+
+async function checkRateLimit(ip) {
+  const col = db.collection('requests');
+  const now = Date.now();
+
+  let record = await col.findOne({ ip });
+  if (!record) {
+    await col.insertOne({ ip, count: 1, firstRequest: now, blockedUntil: null });
+    return true;
+  }
+
+  if (record.blockedUntil && now < record.blockedUntil) return false;
+
+  if (now - record.firstRequest > 60 * 1000) {
+    await col.updateOne({ ip }, { $set: { count: 1, firstRequest: now } });
+    return true;
+  } else if (record.count + 1 > RATE_LIMIT) {
+    await col.updateOne({ ip }, { $set: { blockedUntil: now + BLOCK_TIME } });
+    return false;
+  } else {
+    await col.updateOne({ ip }, { $inc: { count: 1 } });
+    return true;
+  }
+}
+
+export async function GET(req) {
+  const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+  try {
+    await getDb();
+    const allowed = await checkRateLimit(ip);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again in 10 minutes.' }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } catch (err) {
+    console.error("Rate limiter error:", err);
+  }
+
   return new Response(
 `local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
@@ -35,7 +91,6 @@ local gameInfo = game.MarketplaceService:GetProductInfo(game.PlaceId)
 local stored = get("https://nerium.vercel.app/api/supported?find=" .. gameInfo.Name:gsub(" ", "-"))
 
 local file
-// File func
 pcall(function()
     if isfile("Nerium/data.txt") then
         file = game.HttpService:JSONDecode(readfile("Nerium/data.txt"))
@@ -54,16 +109,15 @@ function getGameData(name)
             return v
         end
     end
+    local new = {name = name, usedCode = {}}
     table.insert(file, new)
     writefile("Nerium/data.txt", game.HttpService:JSONEncode(file))
-    return {name = name, usedCode = {}}
+    return new
 end
 
 function markRemoved(fileData, code)
     for _, c in ipairs(fileData.usedCode) do
-        if c == code then
-            return
-        end
+        if c == code then return end
     end
     table.insert(fileData.usedCode, code)
     writefile("Nerium/data.txt", game.HttpService:JSONEncode(file))
@@ -114,30 +168,18 @@ if stored.isFound then
         Tabs.Code:AddButton({
             Title = v.Code,
             Description = v.Reward,
-            Callback = (function(code, reward)
+            Callback = (function(code)
                 return function()
                     Window:Dialog({
                         Title = code,
                         Content = "",
                         Buttons = {
-                            {
-                                Title = "Copy",
-                                Callback = function()
-                                    setclipboard(code)
-                                    notify("Copied", code, 3)
-                                end
-                            },
-                            {
-                                Title = "Remove",
-                                Callback = function()
-                                    markRemoved(fileData, code)
-                                    notify("Marked Removed", code, 3)
-                                end
-                            }
+                            { Title = "Copy", Callback = function() setclipboard(code); notify("Copied", code, 3) end },
+                            { Title = "Remove", Callback = function() markRemoved(fileData, code); notify("Marked Removed", code, 3) end }
                         }
                     })
                 end
-            end)(v.Code, v.Reward)
+            end)(v.Code)
         })
     end
 
@@ -153,20 +195,8 @@ if stored.isFound then
                         Title = c,
                         Content = "",
                         Buttons = {
-                            {
-                                Title = "Copy",
-                                Callback = function()
-                                    setclipboard(c)
-                                    notify("Copied", c, 3)
-                                end
-                            },
-                            {
-                                Title = "Return",
-                                Callback = function()
-                                    unmarkRemoved(fileData, c)
-                                    notify("Returned", c, 3)
-                                end
-                            }
+                            { Title = "Copy", Callback = function() setclipboard(c); notify("Copied", c, 3) end },
+                            { Title = "Return", Callback = function() unmarkRemoved(fileData, c); notify("Returned", c, 3) end }
                         }
                     })
                 end
@@ -180,12 +210,7 @@ if stored.isFound then
         Tabs.Expired:AddButton({
             Title = v.Code,
             Description = v.Reward,
-            Callback = (function(code)
-                return function()
-                    setclipboard(code)
-                    notify("Copied", code, 3)
-                end
-            end)(v.Code)
+            Callback = (function(code) return function() setclipboard(code); notify("Copied", code, 3) end end)(v.Code)
         })
     end
 else
@@ -201,33 +226,25 @@ Tabs.API:AddParagraph({ Title = "API", Content = "" })
 Tabs.API:AddButton({
     Title = "Website",
     Description = "Nerium.vercel.app",
-    Callback = function()
-        setclipboard("https://nerium.vercel.app/")
-    end
+    Callback = function() setclipboard("https://nerium.vercel.app/") end
 })
 
 Tabs.API:AddButton({
     Title = "Code List",
     Description = "/api/game-name",
-    Callback = function()
-        setclipboard("https://nerium.vercel.app/api/[game-name]")
-    end
+    Callback = function() setclipboard("https://nerium.vercel.app/api/[game-name]") end
 })
 
 Tabs.API:AddButton({
     Title = "Supported List",
     Description = "/api/supported",
-    Callback = function()
-        setclipboard("https://nerium.vercel.app/api/supported")
-    end
+    Callback = function() setclipboard("https://nerium.vercel.app/api/supported") end
 })
 
 Tabs.API:AddButton({
     Title = "Supported Check",
     Description = "/api/supported?find=game-name",
-    Callback = function()
-        setclipboard("https://nerium.vercel.app/api/supported?find=[game]")
-    end
+    Callback = function() setclipboard("https://nerium.vercel.app/api/supported?find=[game]") end
 })
 
 notify("Fluent", "The script has been loaded.", 8)`,
