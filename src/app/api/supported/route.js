@@ -1,3 +1,5 @@
+import { MongoClient } from 'mongodb';
+
 const list = {
   "Supported": [
     "parkour-champions",
@@ -668,15 +670,70 @@ const list = {
   ]
 };
 
+
+const MONGODB_URI = process.env.nerium_MONGODB_URI || "mongodb+srv://Vercel-Admin-nerium-data:TXGXPqKKairzq63l@nerium-data.nlg9ana.mongodb.net/?retryWrites=true&w=majority";
+const RATE_LIMIT = 50;         
+const BLOCK_TIME = 10 * 60e3;  
+
+let client;
+let db;
+
+async function getDb() {
+  if (!client) {
+    client = new MongoClient(MONGODB_URI);
+    await client.connect();
+    db = client.db('ratelimit');
+  }
+  return db;
+}
+
+async function checkRateLimit(ip) {
+  const col = db.collection('requests');
+  const now = Date.now();
+
+  let record = await col.findOne({ ip });
+  if (!record) {
+    await col.insertOne({ ip, count: 1, firstRequest: now, blockedUntil: null });
+    return true;
+  }
+
+  if (record.blockedUntil && now < record.blockedUntil) return false;
+
+  if (now - record.firstRequest > 60 * 1000) {
+    await col.updateOne({ ip }, { $set: { count: 1, firstRequest: now } });
+    return true;
+  } else if (record.count + 1 > RATE_LIMIT) {
+    await col.updateOne({ ip }, { $set: { blockedUntil: now + BLOCK_TIME } });
+    return false;
+  } else {
+    await col.updateOne({ ip }, { $inc: { count: 1 } });
+    return true;
+  }
+}
+
 export async function GET(req) {
-  const { searchParams } = new URL(req.url)
-  const find = searchParams.get("find")  
+  const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+  try {
+    await getDb();
+    const allowed = await checkRateLimit(ip);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again in 10 minutes.' }), {
+        status: 429,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+  } catch (err) {
+    console.error("Rate limiter error:", err);
+  }
 
-  if (!find) return Response.json(list)
+  const { searchParams } = new URL(req.url);
+  const find = searchParams.get("find");
 
-  const text = find.toLowerCase().replace(/\s+/g, "-")
-  const match = list.Supported.find(name => text.includes(name))
-  const isFound = Boolean(match)
+  if (!find) return Response.json(list);
 
-  return Response.json({ query: match || text, isFound })
+  const text = find.toLowerCase().replace(/\s+/g, "-");
+  const match = list.Supported.find(name => text.includes(name));
+  const isFound = Boolean(match);
+
+  return Response.json({ query: match || text, isFound });
 }
