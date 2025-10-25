@@ -27,8 +27,8 @@ function Home() {
       />
 
       <h1 className="text-5xl font-extrabold text-green-400 drop-shadow-[0_0_10px_rgba(34,197,94,0.7)]">Nerium API</h1>
-      <p className="text-gray-300 mt-2 text-lg">Fast • Simple • Reliable</p>
-      <p className="text-gray-400 mt-1 text-sm text-center max-w-xs">Very reliable when it comes to Game Code — supported more than 150+ Games!</p>
+      <p className="text-gray-300 mt-2 text-lg">Fast Simple Reliable</p>
+      <p className="text-gray-400 mt-1 text-sm text-center max-w-xs">Very reliable when it comes to Game Code supported more than 600+ Games!</p>
 
       <button
         onClick={goToHome}
