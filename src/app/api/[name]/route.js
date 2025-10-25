@@ -3,16 +3,45 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import LRU from 'lru-cache';
 
 const blacklist = ["Shop -> Codes", "Claim button"];
 const pasteId = "SD3cieyJ";
-const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh";
+const pasteToken = "wZr0tOVIbx3tqyAUSGYMEaEr3TCKOpMAf4czTrTvrr03Cb5EkFOs4MdDNQZh"];
+
+// --- LRU rate limiter ---
+const tokenCache = new LRU({
+  max: 5000,
+  ttl: 10 * 60 * 1000 // block for 10 minutes
+});
+const RATE_LIMIT = 50; // requests per minute
 
 export async function GET(req, context) {
+  // --- Rate limiting ---
+  const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
+  const now = Date.now();
+  const record = tokenCache.get(ip) || { count: 0, firstRequest: now };
+
+  if (now - record.firstRequest > 60 * 1000) {
+    record.count = 1;
+    record.firstRequest = now;
+  } else {
+    record.count++;
+  }
+
+  tokenCache.set(ip, record);
+
+  if (record.count > RATE_LIMIT) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again in 10 minutes.' },
+      { status: 429 }
+    );
+  }
+
+  // --- Main logic ---
   let apiServe = "0";
 
   try {
-    // --- Pastefy increment in one line ---
     await axios.get(`https://pastefy.app/api/v2/paste/${pasteId}`)
       .then(r => (apiServe = r.data.content || "0") && axios.put(
         `https://pastefy.app/api/v2/paste/${pasteId}`,
