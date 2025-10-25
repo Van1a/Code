@@ -20,7 +20,7 @@ local Tabs = {
     API = Window:AddTab({ Title = "API", Icon = "globe" })
 }
 
-local function get(url)
+function get(url)
     local response = request({ Url = url, Method = "GET" })
     return game.HttpService:JSONDecode(response.Body)
 end
@@ -35,7 +35,7 @@ local gameInfo = game.MarketplaceService:GetProductInfo(game.PlaceId)
 local stored = get("https://nerium.vercel.app/api/supported?find=" .. gameInfo.Name:gsub(" ", "-"))
 
 local file
-
+// File func
 pcall(function()
     if isfile("Nerium/data.txt") then
         file = game.HttpService:JSONDecode(readfile("Nerium/data.txt"))
@@ -48,7 +48,7 @@ if not file then
     writefile("Nerium/data.txt", "[]")
 end
 
-local function getGameData(name)
+function getGameData(name)
     for _, v in ipairs(file) do
         if v.name == name then
             return v
@@ -59,7 +59,7 @@ local function getGameData(name)
     return {name = name, usedCode = {}}
 end
 
-local function markRemoved(fileData, code)
+function markRemoved(fileData, code)
     for _, c in ipairs(fileData.usedCode) do
         if c == code then
             return
@@ -103,10 +103,10 @@ if stored.isFound then
 
     Tabs.Code:AddButton({
         Title = "Refresh",
-        Description = "Reload UI (placeholder)",
+        Description = "Refresh",
         Callback = function()
             Window:Destroy()
-            loadstring(game:HttpGet("https://your.script.url/here"))()
+            loadstring(game:HttpGet("https://nerium.vercel.app/api/loader"))()
         end
     })
 
@@ -200,7 +200,7 @@ Tabs.API:AddParagraph({ Title = "API", Content = "" })
 
 Tabs.API:AddButton({
     Title = "Website",
-    Description = "",
+    Description = "Nerium.vercel.app",
     Callback = function()
         setclipboard("https://nerium.vercel.app/")
     end
@@ -208,7 +208,7 @@ Tabs.API:AddButton({
 
 Tabs.API:AddButton({
     Title = "Code List",
-    Description = "",
+    Description = "/api/game-name",
     Callback = function()
         setclipboard("https://nerium.vercel.app/api/[game-name]")
     end
@@ -216,7 +216,7 @@ Tabs.API:AddButton({
 
 Tabs.API:AddButton({
     Title = "Supported List",
-    Description = "",
+    Description = "/api/supported",
     Callback = function()
         setclipboard("https://nerium.vercel.app/api/supported")
     end
@@ -224,7 +224,7 @@ Tabs.API:AddButton({
 
 Tabs.API:AddButton({
     Title = "Supported Check",
-    Description = "",
+    Description = "/api/supported?find=game-name",
     Callback = function()
         setclipboard("https://nerium.vercel.app/api/supported?find=[game]")
     end
