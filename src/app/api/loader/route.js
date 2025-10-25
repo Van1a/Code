@@ -3,7 +3,7 @@ export async function GET() {
 `local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Nerium API | " .. game.MarketplaceService:GetProductInfo(game.PlaceId),
+    Title = "Code Scout Nerium | " .. game.MarketplaceService:GetProductInfo(game.PlaceId),
     SubTitle = "Just A Script",
     TabWidth = 160,
     Size = UDim2.fromOffset(400, 430),
