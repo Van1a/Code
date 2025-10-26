@@ -1,6 +1,12 @@
-local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- https://discord.gg/7t4j478wG6
+-- forcefully clipboard rlly need member lol
+setclipboard("https://discord.gg/7t4j478wG6")
+-- join if you want to ask something 
 
+local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local gin = game.MarketplaceService:GetProductInfo(game.PlaceId)
+local dat
+local inp = "default"
 
 local Win = Flt:CreateWindow({
     Title = "Code Scout Nerium | " .. (gin.Name or "Unknown"),
@@ -33,7 +39,6 @@ ntf("Checking Game","This may take a while.",5)
 
 local sup = req("https://nerium.vercel.app/api/supported?find=" .. gin.Name:gsub(" ", "-"))
 
-local dat
 pcall(function()
     if isfile("Nerium/data.txt") then
         dat = game.HttpService:JSONDecode(readfile("Nerium/data.txt"))
@@ -79,8 +84,6 @@ end
 Tab.Main:AddParagraph({ Title = "Welcome Client", Content = "Hello client enjoy using Code Scout Nerium." })
 Tab.Main:AddParagraph({ Title = "Supported Check", Content = "Type the name of game don't include emoji." })
 
-local inp = "default"
-
 Tab.Main:AddInput("Inp",{
     Title = "Game Name",
     Default = "Default",
@@ -121,7 +124,7 @@ Tab.Main:AddButton({
 if sup and sup.isFound and sup.query then
     Win:Dialog({
         Title = "Supported",
-        Content = "This game is supported.",
+        Content = "This game is supported.\nYou may experience lag spike for a moment.",
         Buttons = { { Title = "Ok" } }
     })
 
