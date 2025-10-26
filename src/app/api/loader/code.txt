@@ -6,7 +6,7 @@ setclipboard("https://discord.gg/7t4j478wG6")
 local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local gin = game.MarketplaceService:GetProductInfo(game.PlaceId)
 local dat
-local inp = "default"
+local inp = "Anime Eternal"
 
 local Win = Flt:CreateWindow({
     Title = "Code Scout Nerium | " .. (gin.Name or "Unknown"),
