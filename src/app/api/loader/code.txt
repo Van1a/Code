@@ -1,0 +1,215 @@
+local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local gin = game.MarketplaceService:GetProductInfo(game.PlaceId)
+
+local Win = Flt:CreateWindow({
+    Title = "Code Scout Nerium | " .. (gin.Name or "Unknown"),
+    SubTitle = "Just A Script",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(430, 400),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tab = {
+    Main = Win:AddTab({ Title = "Main", Icon = "home" }),
+    Cod = Win:AddTab({ Title = "Active", Icon = "code-2" }),
+    Rmv = Win:AddTab({ Title = "Removed", Icon = "trash" }),
+    Exp = Win:AddTab({ Title = "Expired", Icon = "clock" }),
+    Api = Win:AddTab({ Title = "API", Icon = "globe" })
+}
+
+local function req(u)
+    local r = request({ Url = u, Method = "GET" })
+    return game.HttpService:JSONDecode(r.Body)
+end
+
+local function ntf(t,d,s)
+    Flt:Notify({ Title = t, Content = d, Duration = s })
+end
+
+ntf("Checking Game","This may take a while.",5)
+
+local sup = req("https://nerium.vercel.app/api/supported?find=" .. gin.Name:gsub(" ", "-"))
+
+local dat
+pcall(function()
+    if isfile("Nerium/data.txt") then
+        dat = game.HttpService:JSONDecode(readfile("Nerium/data.txt"))
+    end
+end)
+
+if not dat then
+    makefolder("Nerium")
+    dat = {}
+    writefile("Nerium/data.txt","[]")
+end
+
+local function cfg(n)
+    for _,v in ipairs(dat) do
+        if v.name == n then
+            return v
+        end
+    end
+    local e = {name = n, usedCode = {}}
+    table.insert(dat,e)
+    writefile("Nerium/data.txt",game.HttpService:JSONEncode(dat))
+    return e
+end
+
+local function add(f,c)
+    for _,v in ipairs(f.usedCode) do
+        if v == c then return end
+    end
+    table.insert(f.usedCode,c)
+    writefile("Nerium/data.txt",game.HttpService:JSONEncode(dat))
+end
+
+local function rem(f,c)
+    for i=#f.usedCode,1,-1 do
+        if f.usedCode[i] == c then
+            table.remove(f.usedCode,i)
+            break
+        end
+    end
+    writefile("Nerium/data.txt",game.HttpService:JSONEncode(dat))
+end
+
+Tab.Main:AddParagraph({ Title = "Welcome Client", Content = "Hello client enjoy using Code Scout Nerium." })
+Tab.Main:AddParagraph({ Title = "Supported Check", Content = "Type the name of game don't include emoji." })
+
+local inp = "default"
+
+Tab.Main:AddInput("Inp",{
+    Title = "Game Name",
+    Default = "Default",
+    Numeric = false,
+    Finished = false,
+    Placeholder = "anime eternal",
+    Callback = function(v)
+        inp = v
+    end
+})
+
+Tab.Main:AddButton({
+    Title = "Check",
+    Description = "Verify if supported",
+    Callback = function()
+        local s,r = pcall(function()
+            return game:HttpGet("https://nerium.vercel.app/api/supported?find=" .. inp:gsub(" ", "-"))
+        end)
+        if not s then return end
+        if string.find(r,'"isFound":true') then
+            Win:Dialog({
+                Title = "Supported",
+                Content = "This game is supported.",
+                Buttons = {
+                    { Title = "Copy", Callback = function() setclipboard(inp:gsub(" ", "-")); ntf("Copied",inp:gsub(" ", "-"),3) end }
+                }
+            })
+        else
+            Win:Dialog({
+                Title = "Not Supported",
+                Content = "This game is not supported.\nCheck website for list.",
+                Buttons = { { Title = "Ok" } }
+            })
+        end
+    end
+})
+
+if sup and sup.isFound and sup.query then
+    Win:Dialog({
+        Title = "Supported",
+        Content = "This game is supported.",
+        Buttons = { { Title = "Ok" } }
+    })
+
+    local api = req("https://nerium.vercel.app/api/" .. sup.query).data
+    local cfgd = cfg(sup.query)
+
+    Tab.Cod:AddParagraph({ Title = "Active Codes", Content = "Click to copy" })
+
+    Tab.Cod:AddButton({
+        Title = "Refresh",
+        Description = "Refresh list",
+        Callback = function()
+            Win:Destroy()
+            loadstring(game:HttpGet("https://nerium.vercel.app/api/loader"))()
+        end
+    })
+
+    task.defer(function()
+        for _,v in pairs(api.Active) do
+            local skp = false
+            for _,j in ipairs(cfgd.usedCode) do
+                if j == v.Code then
+                    skp = true
+                    break
+                end
+            end
+            if not skp then
+                Tab.Cod:AddButton({
+                    Title = v.Code,
+                    Description = v.Reward,
+                    Callback = function()
+                        Win:Dialog({
+                            Title = v.Code,
+                            Content = "",
+                            Buttons = {
+                                { Title = "Copy", Callback = function() setclipboard(v.Code); ntf("Copied",v.Code,3) end },
+                                { Title = "Remove", Callback = function() add(cfgd,v.Code); ntf("Marked Removed",v.Code,3) end }
+                            }
+                        })
+                    end
+                })
+            end
+        end
+    end)
+
+    Tab.Rmv:AddParagraph({ Title = "Removed Codes", Content = "" })
+
+    task.defer(function()
+        for _,c in ipairs(cfgd.usedCode) do
+            Tab.Rmv:AddButton({
+                Title = c,
+                Description = "Click to manage",
+                Callback = function()
+                    Win:Dialog({
+                        Title = c,
+                        Content = "",
+                        Buttons = {
+                            { Title = "Copy", Callback = function() setclipboard(c); ntf("Copied",c,3) end },
+                            { Title = "Return", Callback = function() rem(cfgd,c); ntf("Returned",c,3) end }
+                        }
+                    })
+                end
+            })
+        end
+    end)
+
+    Tab.Exp:AddParagraph({ Title = "Expired Codes", Content = "" })
+
+    task.defer(function()
+        for _,v in pairs(api.Expire) do
+            Tab.Exp:AddButton({
+                Title = v,
+                Callback = function() setclipboard(v); ntf("Copied",v,3) end
+            })
+        end
+    end)
+else
+    Win:Dialog({
+        Title = "Not Supported",
+        Content = "Closing script.",
+        Buttons = { { Title = "Ok", Callback = function() Win:Destroy() end } }
+    })
+end
+
+Tab.Api:AddParagraph({ Title = "API", Content = "" })
+Tab.Api:AddButton({ Title = "Website", Description = "Nerium.vercel.app", Callback = function() setclipboard("https://nerium.vercel.app/") end })
+Tab.Api:AddButton({ Title = "Code List", Description = "/api/game-name", Callback = function() setclipboard("https://nerium.vercel.app/api/[game-name]") end })
+Tab.Api:AddButton({ Title = "Supported List", Description = "/api/supported", Callback = function() setclipboard("https://nerium.vercel.app/api/supported") end })
+Tab.Api:AddButton({ Title = "Supported Check", Description = "/api/supported?find=game-name", Callback = function() setclipboard("https://nerium.vercel.app/api/supported?find=[game]") end })
+
+ntf("Fluent","The script has been loaded.",8)
