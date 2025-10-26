@@ -1,6 +1,15 @@
-local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- HEHEHE
+setclipboard("https://discord.gg/7t4j478wG6")
+-- I need member so join so i can continue updating ts code
+-- variable is short, i don't really want to have code that have too much line
+-- fluent follow me in scriptblox https://scriptblox.com/u/Gray
 
+
+local Flt = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local gin = game.MarketplaceService:GetProductInfo(game.PlaceId)
+
+local dat
+local inp = "default"
 
 local Win = Flt:CreateWindow({
     Title = "Code Scout Nerium | " .. (gin.Name or "Unknown"),
@@ -33,7 +42,6 @@ ntf("Checking Game","This may take a while.",5)
 
 local sup = req("https://nerium.vercel.app/api/supported?find=" .. gin.Name:gsub(" ", "-"))
 
-local dat
 pcall(function()
     if isfile("Nerium/data.txt") then
         dat = game.HttpService:JSONDecode(readfile("Nerium/data.txt"))
@@ -79,8 +87,6 @@ end
 Tab.Main:AddParagraph({ Title = "Welcome Client", Content = "Hello client enjoy using Code Scout Nerium." })
 Tab.Main:AddParagraph({ Title = "Supported Check", Content = "Type the name of game don't include emoji." })
 
-local inp = "default"
-
 Tab.Main:AddInput("Inp",{
     Title = "Game Name",
     Default = "Default",
@@ -118,17 +124,17 @@ Tab.Main:AddButton({
     end
 })
 
-if sup and sup.isFound and sup.query then
+if sup.isFound then
     Win:Dialog({
         Title = "Supported",
-        Content = "This game is supported.",
+        Content = "This game is supported.\n You may experience spike lag for a time being",
         Buttons = { { Title = "Ok" } }
     })
 
     local api = req("https://nerium.vercel.app/api/" .. sup.query).data
     local cfgd = cfg(sup.query)
 
-    Tab.Cod:AddParagraph({ Title = "Active Codes", Content = "Click to copy" })
+    Tab.Cod:AddParagraph({ Title = "Active Codes", Content = "List of active code" })
 
     Tab.Cod:AddButton({
         Title = "Refresh",
@@ -167,7 +173,7 @@ if sup and sup.isFound and sup.query then
         end
     end)
 
-    Tab.Rmv:AddParagraph({ Title = "Removed Codes", Content = "" })
+    Tab.Rmv:AddParagraph({ Title = "Removed Codes", Content = "list of the code you remove " })
 
     task.defer(function()
         for _,c in ipairs(cfgd.usedCode) do
@@ -188,7 +194,7 @@ if sup and sup.isFound and sup.query then
         end
     end)
 
-    Tab.Exp:AddParagraph({ Title = "Expired Codes", Content = "" })
+    Tab.Exp:AddParagraph({ Title = "Expired Codes", Content = "List of expired code" })
 
     task.defer(function()
         for _,v in pairs(api.Expire) do
